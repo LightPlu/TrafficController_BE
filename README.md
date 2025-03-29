@@ -34,3 +34,120 @@
 | 🕒 신청 시작 전 Redis 캐시 세팅 | 자격증별 수용 인원 정보를 Redis에 미리 적재 (빠른 처리 위해) |
 | 🚫 신청 제한 처리 | 장소별 신청 인원이 초과되면 신청 불가 처리 (Redis 레벨에서 제어) |
 | ✅ 신청 성공 시 DB 저장 | 신청 성공한 사용자 정보를 DB에 기록 (트랜잭션 처리) |
+
+# 📘 자격증 신청 시스템 API 명세서
+
+---
+
+## ✅ 사용자 API
+
+### 1. 자격증 일정 캘린더 조회
+- `GET /api/certificates/calendar`
+- 설명: 전체 자격증의 신청 및 시험 일정을 캘린더 형식으로 조회
+
+---
+
+### 2. 현재 신청 가능한 자격증 목록
+- `GET /api/certificates/available`
+- 설명: 현재 신청 가능한 자격증 리스트 조회
+
+---
+
+### 3. 자격증 상세 정보 및 장소별 수용 현황
+- `GET /api/certificates/{certificateId}`
+- 설명: 선택한 자격증의 시험 장소별 신청 가능 인원 확인
+
+---
+
+### 4. 자격증 신청
+- `POST /api/applications`
+- 설명: 자격증 시험 신청
+- Request Body 예시:
+```json
+{
+  "certificatePlaceId": 7
+}
+```
+
+---
+
+### 5. 마이페이지 - 내 신청 내역
+- `GET /api/users/me/applications`
+- 설명: 로그인한 사용자의 신청 이력 조회
+
+---
+
+### 6. 마이페이지 - 내 정보 조회 및 수정
+- `GET /api/users/me`
+- `PATCH /api/users/me`
+- 설명: 회원정보 확인 및 수정
+
+---
+
+## 🛠️ 관리자 API
+
+### 1. 자격증 등록
+- `POST /api/admin/certificates`
+- 설명: 새로운 자격증 생성
+- Request Body 예시:
+```json
+{
+  "name": "정보처리기사",
+  "applyStart": "2025-04-01",
+  "applyEnd": "2025-04-10",
+  "examStart": "2025-05-01",
+  "examEnd": "2025-05-01"
+}
+```
+
+---
+
+### 2. 시험 장소 등록
+- `POST /api/admin/places`
+- 설명: 시험장 정보 등록
+- Request Body 예시:
+```json
+{
+  "name": "서울 고사장",
+  "location": "서울시 강남구",
+  "capacity": 300
+}
+```
+
+---
+
+### 3. 자격증-장소 배정
+- `POST /api/admin/certificates/{certificateId}/places`
+- 설명: 자격증에 시험 장소 연결
+- Request Body 예시:
+```json
+{
+  "placeId": 1
+}
+```
+
+---
+
+### 4. 신청 현황 통계
+- `GET /api/admin/statistics/applications`
+- 설명: 자격증/장소별 신청 인원 및 분포 확인
+
+---
+
+### 5. 실시간 트래픽 현황
+- `GET /api/admin/statistics/traffic`
+- 설명: 실시간 요청 수, 트래픽 증가율 등의 시각화 정보 제공
+
+---
+
+## ⚙️ 시스템 내부 API (옵션)
+
+### 1. Redis 캐시 초기화
+- `POST /api/internal/cache/certificates/{certificateId}/init`
+- 설명: 신청 시작 전 Redis에 수용인원 캐시 설정
+
+---
+
+### 2. 신청 확정 반영 (Redis → DB)
+- `POST /api/internal/applications/commit`
+- 설명: 비동기 처리로 신청 결과를 DB에 반영
